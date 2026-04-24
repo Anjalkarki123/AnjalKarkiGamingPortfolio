@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ANJAL.EXE · The Recruit's Journey</title>
+  <meta name="description" content="An interactive game-portfolio by Anjal Karki — Computer Science student, AI builder." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@300;400;600;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 3D background -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- CRT / Scanlines overlay -->
+  <div class="crt scanlines"></div>
+  <div class="crt vignette"></div>
+  <div class="crt glitch-layer" id="glitchLayer"></div>
+
+  <!-- Custom cursor -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- XP / Achievement toasts -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- Floating XP gains -->
+  <div class="xp-float-layer" id="xpLayer"></div>
+
+  <!-- Particle burst & mouse trail -->
+  <canvas id="fxCanvas"></canvas>
+
+  <!-- Confetti / Konami layer -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Achievement popup -->
+  <div class="achievement" id="achievement">
+    <div class="ach-badge">
+      <svg viewBox="0 0 40 40" width="40" height="40">
+        <polygon points="20,2 38,12 38,28 20,38 2,28 2,12" fill="none" stroke="currentColor" stroke-width="2"/>
+        <polygon points="20,10 30,15 30,25 20,30 10,25 10,15" fill="currentColor" opacity="0.3"/>
+        <text x="20" y="25" text-anchor="middle" font-family="Press Start 2P" font-size="12" fill="currentColor">★</text>
+      </svg>
+    </div>
+    <div class="ach-body">
+      <div class="ach-label">ACHIEVEMENT UNLOCKED</div>
+      <div class="ach-title" id="achTitle">—</div>
+      <div class="ach-desc" id="achDesc">—</div>
+    </div>
+  </div>
+
+  <!-- ============== BIOS BOOT ============== -->
+  <div class="screen bios-screen" id="biosScreen">
+    <div class="bios-inner">
+      <div class="bios-logo">
+        <span class="bios-block"></span>
+        <span>KARKI SYSTEMS · ANJAL.EXE BIOS v1.0</span>
+      </div>
+      <div class="bios-copyright">© 2026 ANJAL KARKI · ALL SYSTEMS NOMINAL</div>
+      <div class="bios-hr"></div>
+      <div class="bios-log" id="biosLog"></div>
+      <div class="bios-skip">▸ PRESS ANY KEY · CLICK TO SKIP</div>
+    </div>
+  </div>
+
+  <!-- Hidden GOD MODE overlay -->
+  <div class="god-mode" id="godMode">
+    <div class="gm-inner">
+      <div class="gm-title">★ GOD MODE ACTIVATED ★</div>
+      <div class="gm-sub">You found the Konami code. Legendary.</div>
+      <div class="gm-stats">
+        <div><span>INFINITE XP</span><b>∞</b></div>
+        <div><span>RAINBOW HUD</span><b>ON</b></div>
+        <div><span>HIDDEN LORE</span><b>UNLOCKED</b></div>
+      </div>
+      <div class="gm-lore">
+        Anjal's secret: the real "architect of intelligence" isn't the AI —<br/>
+        it's the human who knows when to trust the machine, and when not to.<br/>
+        You found this. You get it. Respect.
+      </div>
+      <button class="gm-close" id="gmClose">▼ CLOSE (any key)</button>
+    </div>
+  </div>
+
+  <!-- Session timer in bottom corner -->
+  <div class="session-timer" id="sessionTimer">
+    <span class="st-label">TIME</span>
+    <span class="st-value" id="stValue">00:00</span>
+  </div>
+
+  <!-- Floating Music Player widget -->
+  <div class="music-player" id="musicPlayer">
+    <div class="mp-header">
+      <span class="mp-bars">
+        <i></i><i></i><i></i><i></i>
+      </span>
+      <span class="mp-label">NOW PLAYING</span>
+      <button class="mp-power" id="mpPower" title="Toggle music (N)">ON</button>
+    </div>
+    <div class="mp-track" id="mpTrack">SYNTHWAVE</div>
+    <div class="mp-controls">
+      <button class="mp-btn" id="mpPrev" title="Previous track">◄◄</button>
+      <button class="mp-btn" id="mpPlay" title="Play / Pause (N)">■</button>
+      <button class="mp-btn" id="mpNext" title="Next track">►►</button>
+    </div>
+  </div>
+
+  <!-- ============== START SCREEN ============== -->
+  <div class="screen start-screen" id="startScreen">
+    <div class="start-inner">
+      <div class="arcade-tag">◆ INSERT COIN TO PLAY ◆</div>
+      <h1 class="arcade-title">
+        <span class="glow-green">ANJAL</span>
+        <span class="glow-pink">.EXE</span>
+      </h1>
+      <div class="arcade-sub">THE RECRUIT'S JOURNEY · v1.0</div>
+      <div class="arcade-desc">
+        A playable portfolio. You are the recruiter.<br/>
+        Your mission: survey Anjal Karki across 5 levels.<br/>
+        <span class="hl">Earn XP. Unlock abilities. Claim the recruit.</span>
+      </div>
+
+      <button class="start-btn" id="startBtn">
+        <span class="start-arrow">▶</span>
+        <span>PRESS START</span>
+      </button>
+
+      <div class="start-keys">
+        <div class="key-hint"><kbd>SPACE</kbd> / <kbd>CLICK</kbd> to begin</div>
+        <div class="key-hint"><kbd>→</kbd> next · <kbd>←</kbd> back · <kbd>M</kbd> map</div>
+      </div>
+
+      <div class="high-score">
+        <div class="hs-row"><span>HI-SCORE</span><span>999,999</span></div>
+        <div class="hs-row"><span>YOUR SCORE</span><span id="hsYour">000,000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== GAME HUD ============== -->
+  <header class="hud" id="hud">
+    <div class="hud-left">
+      <div class="hud-logo">
+        <span class="hl-dot"></span>
+        <span>ANJAL.EXE</span>
+      </div>
+      <div class="hud-level" id="hudLevel">LVL 01 · IDENTITY</div>
+    </div>
+    <div class="hud-center">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-nodes" id="progressNodes"></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-stat"><span class="hs-label">HP</span><span class="hs-bar"><span id="hpBar"></span></span></div>
+      <div class="hud-stat"><span class="hs-label">XP</span><span class="hs-value" id="xpValue">0000</span></div>
+      <button class="hud-btn" id="musicBtn" title="Toggle music (N)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18V6l12-2v12M9 18a3 3 0 11-6 0 3 3 0 016 0zM21 16a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="musicLabel">ON</span>
+      </button>
+      <button class="hud-btn" id="mapBtn" title="Open map">
+        <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="5" r="1.5" fill="currentColor"/><circle cx="11" cy="11" r="1.5" fill="currentColor"/><path d="M5 5 L11 11" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>MAP</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============== MAIN GAME AREA ============== -->
+  <main class="game" id="game">
+
+    <!-- ===== LEVEL 1: IDENTITY ===== -->
+    <section class="level" data-level="1" data-name="IDENTITY">
+      <div class="level-badge">
+        <span class="lb-num">01</span>
+        <span class="lb-label">IDENTITY</span>
+      </div>
+
+      <div class="dialog-box">
+        <div class="dialog-header">
+          <span class="dh-dot"></span>
+          <span>NEW RECRUIT DETECTED · SCANNING...</span>
+        </div>
+        <div class="dialog-content typewrite" data-text="A signal breaks through the static. You've found a new candidate. Name: Anjal Karki. Origin: Nepal → Moscow, Idaho. Class: Computer Science · Year 3. Designation: Architect of Intelligence. Proceed to survey."></div>
+      </div>
+
+      <div class="character-card">
+        <div class="char-portrait">
+          <div class="portrait-frame">
+            <img src="assets/profile.png" alt="Anjal Karki" />
+          </div>
+          <div class="char-level">LVL 23</div>
+        </div>
+
+        <div class="char-panel">
+          <div class="char-name">ANJAL <span>KARKI</span></div>
+          <div class="char-sub">COMPUTER SCIENCE · UNIVERSITY OF IDAHO · CLASS OF 2027</div>
+
+          <div class="stat-grid single">
+            <div class="stat-box" style="--w:94%">
+              <div class="sb-label">GPA · UI MOSCOW</div>
+              <div class="sb-value">3.75</div>
+              <div class="sb-pips"></div>
+            </div>
+          </div>
+
+          <div class="char-tags">
+            <span>Full-Stack</span><span>AI Systems</span><span>React</span><span>Python</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="level-action">
+        <button class="action-btn primary" data-next>
+          <span>CONTINUE</span>
+          <span class="ab-key">[SPACE]</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== LEVEL 2: SKILL TREE ===== -->
+    <section class="level" data-level="2" data-name="SKILL TREE">
+      <div class="level-badge">
+        <span class="lb-num">02</span>
+        <span class="lb-label">SKILL TREE</span>
+      </div>
+
+      <div class="dialog-box">
+        <div class="dialog-header">
+          <span class="dh-dot"></span>
+          <span>ABILITIES UNLOCKED · HOVER TO INSPECT</span>
+        </div>
+        <div class="dialog-content">The recruit's arsenal. Every ability is combat-tested.</div>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-cell" data-tier="S">
+          <div class="sc-name">Python</div>
+          <div class="sc-bar"><div style="--w:95%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="S">
+          <div class="sc-name">React</div>
+          <div class="sc-bar"><div style="--w:88%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="S">
+          <div class="sc-name">C++</div>
+          <div class="sc-bar"><div style="--w:90%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="A">
+          <div class="sc-name">FastAPI</div>
+          <div class="sc-bar"><div style="--w:85%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="A">
+          <div class="sc-name">C#</div>
+          <div class="sc-bar"><div style="--w:85%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="A">
+          <div class="sc-name">JavaScript</div>
+          <div class="sc-bar"><div style="--w:82%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="A">
+          <div class="sc-name">Django</div>
+          <div class="sc-bar"><div style="--w:80%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="A">
+          <div class="sc-name">Claude AI</div>
+          <div class="sc-bar"><div style="--w:88%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="A">
+          <div class="sc-name">Git</div>
+          <div class="sc-bar"><div style="--w:90%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">C</div>
+          <div class="sc-bar"><div style="--w:78%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">Unity</div>
+          <div class="sc-bar"><div style="--w:75%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">MATLAB</div>
+          <div class="sc-bar"><div style="--w:70%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">Linux</div>
+          <div class="sc-bar"><div style="--w:82%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">SQL</div>
+          <div class="sc-bar"><div style="--w:80%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">HTML/CSS</div>
+          <div class="sc-bar"><div style="--w:92%"></div></div>
+        </div>
+        <div class="skill-cell" data-tier="B">
+          <div class="sc-name">Tailwind</div>
+          <div class="sc-bar"><div style="--w:85%"></div></div>
+        </div>
+      </div>
+
+      <div class="level-action">
+        <button class="action-btn ghost" data-prev>◄ BACK</button>
+        <button class="action-btn primary" data-next>ARMORY ▶</button>
+      </div>
+    </section>
+
+    <!-- ===== LEVEL 3: ARMORY / PROJECTS ===== -->
+    <section class="level" data-level="3" data-name="ARMORY">
+      <div class="level-badge">
+        <span class="lb-num">03</span>
+        <span class="lb-label">ARMORY · PROJECTS</span>
+      </div>
+
+      <div class="dialog-box">
+        <div class="dialog-header">
+          <span class="dh-dot"></span>
+          <span>INVENTORY · CLICK ITEM TO INSPECT</span>
+        </div>
+        <div class="dialog-content">Each item was forged through nights of focused work. Select to view schematic.</div>
+      </div>
+
+      <div class="inventory-grid">
+        <button class="item-slot legendary" data-item="rcds">
+          <div class="item-rarity">LEGENDARY</div>
+          <div class="item-thumb rcds-thumb">
+            <div class="thumb-core">RCDS</div>
+          </div>
+          <div class="item-name">Invoicing Platform</div>
+          <div class="item-type">FULL-STACK · AI</div>
+        </button>
+
+        <button class="item-slot epic" data-item="agri">
+          <div class="item-rarity">EPIC</div>
+          <div class="item-thumb"><img src="assets/proj03.png" alt="Agricultural Chatbot" /></div>
+          <div class="item-name">AI Crop Intelligence</div>
+          <div class="item-type">AI · LOVABLE</div>
+        </button>
+
+        <button class="item-slot epic" data-item="hub">
+          <div class="item-rarity">EPIC</div>
+          <div class="item-thumb"><img src="assets/proj04.png" alt="UIdaho International Hub" /></div>
+          <div class="item-name">UIdaho Intl. Hub</div>
+          <div class="item-type">WEB · COMMUNITY</div>
+        </button>
+
+        <button class="item-slot rare" data-item="lostmap">
+          <div class="item-rarity">RARE</div>
+          <div class="item-thumb"><img src="assets/proj02.png" alt="Lost Map Studio" /></div>
+          <div class="item-name">Lost Map Studio</div>
+          <div class="item-type">GAME · UNITY / C#</div>
+        </button>
+
+        <button class="item-slot rare" data-item="reminder">
+          <div class="item-rarity">RARE</div>
+          <div class="item-thumb"><img src="assets/proj01.png" alt="Reminder App" /></div>
+          <div class="item-name">Reminder App</div>
+          <div class="item-type">DESKTOP · DJANGO/TK</div>
+        </button>
+
+        <button class="item-slot uncommon" data-item="budget">
+          <div class="item-rarity">UNCOMMON</div>
+          <div class="item-thumb"><img src="assets/budget.png" alt="Budget Guardian" /></div>
+          <div class="item-name">Budget Guardian</div>
+          <div class="item-type">WEB · FINANCE</div>
+        </button>
+      </div>
+
+      <div class="level-action">
+        <button class="action-btn ghost" data-prev>◄ BACK</button>
+        <button class="action-btn primary" data-next>QUEST LOG ▶</button>
+      </div>
+    </section>
+
+    <!-- ===== LEVEL 4: QUEST LOG ===== -->
+    <section class="level" data-level="4" data-name="QUESTS">
+      <div class="level-badge">
+        <span class="lb-num">04</span>
+        <span class="lb-label">QUEST LOG</span>
+      </div>
+
+      <div class="dialog-box">
+        <div class="dialog-header">
+          <span class="dh-dot"></span>
+          <span>COMPLETED QUESTS · SERVICE RECORD</span>
+        </div>
+        <div class="dialog-content">These are the contracts fulfilled, the battles won.</div>
+      </div>
+
+      <div class="quest-log">
+        <div class="quest">
+          <div class="quest-img"><img src="assets/rcds.png" alt="RCDS dev station" /></div>
+          <div class="quest-body">
+            <div class="quest-title">Application Development Intern</div>
+            <div class="quest-issuer">RCDS · IIDS · University of Idaho</div>
+            <div class="quest-date">MAR 2026 — PRESENT</div>
+            <ul class="quest-objectives">
+              <li>✓ Ship full-stack invoicing platform (React + FastAPI + Python, Claude AI)</li>
+              <li>✓ Integrate ClickUp billing + hour extraction + PDF generation</li>
+              <li>▸ Build Excel-based review workflow for finalization</li>
+            </ul>
+          </div>
+          <div class="quest-reward">+2000 XP</div>
+        </div>
+
+        <div class="quest">
+          <div class="quest-img"><img src="assets/img11.png" alt="ESPN broadcast" /></div>
+          <div class="quest-body">
+            <div class="quest-title">ESPN+ Broadcast · Athletic Video</div>
+            <div class="quest-issuer">Idaho Athletics</div>
+            <div class="quest-date">JUL 2025 — PRESENT</div>
+            <ul class="quest-objectives">
+              <li>✓ Film and edit game/practice footage for coaches</li>
+              <li>✓ Run live replay + graphics for ESPN+ broadcasts</li>
+            </ul>
+          </div>
+          <div class="quest-reward">+1500 XP</div>
+        </div>
+
+        <div class="quest">
+          <div class="quest-img"><img src="assets/img04.png" alt="Math tutoring" /></div>
+          <div class="quest-body">
+            <div class="quest-title">Mathematics Tutor</div>
+            <div class="quest-issuer">University of Idaho</div>
+            <div class="quest-date">JAN 2025 — PRESENT</div>
+            <ul class="quest-objectives">
+              <li>✓ Coach Calculus students 1:1 and in groups</li>
+              <li>✓ Teach optimization strategies for hard problems</li>
+            </ul>
+          </div>
+          <div class="quest-reward">+1200 XP</div>
+        </div>
+
+        <div class="quest">
+          <div class="quest-img"><img src="assets/canvas.png" alt="Student Accessibility Assistant badge" /></div>
+          <div class="quest-body">
+            <div class="quest-title">Canvas Accessibility Assistant</div>
+            <div class="quest-issuer">University of Idaho</div>
+            <div class="quest-date">JAN 2026 — MAR 2026</div>
+            <ul class="quest-objectives">
+              <li>✓ Rebuild course materials with UDL principles</li>
+            </ul>
+          </div>
+          <div class="quest-reward">+800 XP</div>
+        </div>
+      </div>
+
+      <div class="level-action">
+        <button class="action-btn ghost" data-prev>◄ BACK</button>
+        <button class="action-btn primary" data-next>GUILD HALL ▶</button>
+      </div>
+    </section>
+
+    <!-- ===== LEVEL 5: GUILD HALL ===== -->
+    <section class="level" data-level="5" data-name="GUILD">
+      <div class="level-badge">
+        <span class="lb-num">05</span>
+        <span class="lb-label">GUILD HALL</span>
+      </div>
+
+      <div class="dialog-box">
+        <div class="dialog-header">
+          <span class="dh-dot"></span>
+          <span>BEYOND CODE · THE HUMAN LAYER</span>
+        </div>
+        <div class="dialog-content">No hero walks alone. These are the guilds, parties, and conventions.</div>
+      </div>
+
+      <div class="guild-grid">
+        <figure class="guild-card gc-tall">
+          <img src="assets/img13.png" alt="Leadership conference" />
+          <figcaption>
+            <span class="gc-tag">GUILD · LEADERSHIP</span>
+            <span class="gc-title">Leaders Institute · Shape</span>
+          </figcaption>
+        </figure>
+        <figure class="guild-card">
+          <img src="assets/img09.png" alt="ESPN+ night game" />
+          <figcaption>
+            <span class="gc-tag">FIELD OPS</span>
+            <span class="gc-title">Night Game · Sideline</span>
+          </figcaption>
+        </figure>
+        <figure class="guild-card">
+          <img src="assets/img05.png" alt="International students" />
+          <figcaption>
+            <span class="gc-tag">ISO</span>
+            <span class="gc-title">International Student Org</span>
+          </figcaption>
+        </figure>
+        <figure class="guild-card gc-wide">
+          <img src="assets/img11.png" alt="Broadcast" />
+          <figcaption>
+            <span class="gc-tag">LIVE PRODUCTION</span>
+            <span class="gc-title">ESPN+ Replay Booth</span>
+          </figcaption>
+        </figure>
+        <figure class="guild-card">
+          <img src="assets/img02.png" alt="Cultural fest" />
+          <figcaption>
+            <span class="gc-tag">COMMUNITY</span>
+            <span class="gc-title">Cultural Fest</span>
+          </figcaption>
+        </figure>
+        <figure class="guild-card">
+          <img src="assets/img10.png" alt="Media pass" />
+          <figcaption>
+            <span class="gc-tag">CREDENTIAL</span>
+            <span class="gc-title">Media Pass · Game 6</span>
+          </figcaption>
+        </figure>
+        <figure class="guild-card">
+          <img src="assets/img01.png" alt="ACM Engineering" />
+          <figcaption>
+            <span class="gc-tag">ACM</span>
+            <span class="gc-title">Engineer · Vandal</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="level-action">
+        <button class="action-btn ghost" data-prev>◄ BACK</button>
+        <button class="action-btn primary" data-next>FINAL LEVEL ▶</button>
+      </div>
+    </section>
+
+    <!-- ===== FINAL LEVEL: RECRUIT ===== -->
+    <section class="level final" data-level="6" data-name="RECRUIT">
+      <div class="level-badge final-badge">
+        <span class="lb-num">FIN</span>
+        <span class="lb-label">RECRUIT</span>
+      </div>
+
+      <div class="final-banner">
+        <div class="fb-title">YOU WIN</div>
+        <div class="fb-sub">Quest Complete · All levels cleared</div>
+        <div class="fb-score">+10,000 XP · TOTAL: <span id="finalXP">0</span></div>
+      </div>
+
+      <div class="dialog-box">
+        <div class="dialog-header">
+          <span class="dh-dot"></span>
+          <span>CLAIM THE RECRUIT · CHOOSE YOUR APPROACH</span>
+        </div>
+        <div class="dialog-content">Anjal is open to 2026 internships. Pick your ability to reach out.</div>
+      </div>
+
+      <div class="abilities">
+        <a href="mailto:karkiaj1738@gmail.com" class="ability">
+          <div class="ab-icon">✉</div>
+          <div class="ab-name">SEND MESSAGE</div>
+          <div class="ab-stat">karkiaj1738@gmail.com</div>
+          <div class="ab-cost">COST · 0 MP</div>
+        </a>
+        <a href="https://linkedin.com/in/anjal-karki-258298226" target="_blank" rel="noopener" class="ability">
+          <div class="ab-icon">in</div>
+          <div class="ab-name">CONNECT</div>
+          <div class="ab-stat">/in/anjal-karki-258298226</div>
+          <div class="ab-cost">COST · 5 MP</div>
+        </a>
+        <a href="tel:+12089977552" class="ability">
+          <div class="ab-icon">☎</div>
+          <div class="ab-name">SUMMON</div>
+          <div class="ab-stat">+1 (208) 997-7552</div>
+          <div class="ab-cost">COST · 15 MP</div>
+        </a>
+      </div>
+
+      <div class="credits">
+        <div class="credits-row">
+          <span>© 2026 ANJAL KARKI</span>
+          <span>MADE WITH THREE.JS · VANILLA · CLAUDE</span>
+        </div>
+      </div>
+
+      <div class="level-action">
+        <button class="action-btn ghost" data-prev>◄ BACK</button>
+        <button class="action-btn primary" id="restartBtn">▶ PLAY AGAIN</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============== MAP OVERLAY ============== -->
+  <div class="screen map-screen" id="mapScreen">
+    <div class="map-inner">
+      <div class="map-header">
+        <h2>WORLD MAP</h2>
+        <button class="map-close" id="mapClose">✕ CLOSE [M]</button>
+      </div>
+      <div class="map-grid" id="mapGrid"></div>
+      <div class="map-hint">Click any node to warp there.</div>
+    </div>
+  </div>
+
+  <!-- ============== ITEM MODAL ============== -->
+  <div class="item-modal" id="itemModal">
+    <div class="im-backdrop"></div>
+    <div class="im-card">
+      <button class="im-close" id="imClose">✕</button>
+      <div class="im-top">
+        <div class="im-thumb" id="imThumb"></div>
+        <div class="im-info">
+          <div class="im-rarity" id="imRarity">LEGENDARY</div>
+          <h3 class="im-name" id="imName"></h3>
+          <div class="im-type" id="imType"></div>
+        </div>
+      </div>
+      <div class="im-desc" id="imDesc"></div>
+      <div class="im-stats" id="imStats"></div>
+      <div class="im-tags" id="imTags"></div>
+      <div class="im-launches" id="imLaunches"></div>
+    </div>
+  </div>
+
+  <!-- Three.js module -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
