@@ -95,7 +95,6 @@ Then open `http://localhost:5500`.
 
 **Designed, built, and shipped by [Anjal Karki](https://linkedin.com/in/anjal-karki-258298226)** — Computer Science · University of Idaho · Class of 2027.
 
-**Claude (Anthropic)** assisted with architecture, Three.js scene design, the synthwave engine, and this README.
 
 ---
 
